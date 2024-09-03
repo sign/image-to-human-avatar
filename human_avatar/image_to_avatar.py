@@ -11,11 +11,14 @@ from transformers import pipeline
 
 def extract_pose(image: Image):
     frames = [np.array(image)]
-    return load_holistic(frames,
+    pose = load_holistic(frames,
                          fps=1,
                          width=image.width,
                          height=image.height,
                          depth=image.width)
+    if pose.body.data.mask.all():
+        raise Exception("No pose detected")
+    return pose
 
 
 @lru_cache(maxsize=None)

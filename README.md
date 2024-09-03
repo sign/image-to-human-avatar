@@ -19,13 +19,24 @@ Specifically, we aim to detect the human in the image, position it to our standa
 ## Conditions
 
 - Input can be of any aspect ratio.
-- There must be a human in the image (real or fictional) (TODO).
+- There must be a human in the image (real or fictional).
 - The human must be standing, with their arms down, facing the camera (TODO).
-- The image must be safe for work - no nudity allowed (TODO).
-- The creator of the avatar must have the right to use the image (TODO).
+- The image must be safe-for-work.
+- The creator of the avatar must have the right to use the image.
 
 ## Usage
 
 ```bash
 pip install git+https://github.com/sign/image-to-human-avatar
+```
+
+To then process an image:
+```python
+from human_avatar import image_to_avatar
+from PIL import Image
+
+image = Image.open("example.jpg")
+cropped, masked, pose = image_to_avatar(image)
+
+masked.save("masked.png")
 ```
