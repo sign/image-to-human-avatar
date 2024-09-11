@@ -7,10 +7,14 @@ authors = [
 ]
 readme = "README.md"
 dependencies = [
+    # Work with images
+    "Pillow",
+    # Pose estimation
     "pose-format",
     "mediapipe",
+    "opencv-python==4.5.5.64",
+    # Transformers with vision
     "transformers",
-    "Pillow",
     "torchvision",
     "scikit-image"
 ]
