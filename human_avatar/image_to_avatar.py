@@ -63,7 +63,7 @@ def image_to_avatar(image: Image):
     if cropped_image.size[0] < 1024 or cropped_image.size[1] < 1024:
         raise Exception("Image is too small. Cropped region should be at least 512x512")
 
-    sfw = is_safe_for_work(img)
+    sfw = is_safe_for_work(image)
     print("Is safe for work", sfw)
     if not sfw:
         raise Exception("Image is not safe for work")

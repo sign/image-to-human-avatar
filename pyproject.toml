@@ -8,8 +8,11 @@ authors = [
 readme = "README.md"
 dependencies = [
     "pose-format",
+    "mediapipe",
     "transformers",
     "Pillow",
+    "torchvision",
+    "scikit-image"
 ]
 
 [project.optional-dependencies]
