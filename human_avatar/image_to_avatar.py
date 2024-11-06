@@ -15,7 +15,12 @@ def extract_pose(image: Image):
                          fps=1,
                          width=image.width,
                          height=image.height,
-                         depth=image.width)
+                         depth=image.width,
+                         additional_holistic_config={
+                             "model_complexity": 2,
+                             "smooth_landmarks": False,
+                             "refine_face_landmarks": True,
+                         })
     if pose.body.data.mask.all():
         raise Exception("No pose detected")
     return pose
