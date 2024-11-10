@@ -8,6 +8,8 @@ from pose_format.utils.generic import pose_normalization_info
 from pose_format.utils.holistic import load_holistic
 from transformers import pipeline
 
+CROP_RESOLUTION = 512
+
 
 def extract_pose(image: Image):
     frames = [np.array(image)]
@@ -65,8 +67,8 @@ def image_to_avatar(image: Image):
 
     cropped_image = crop_person(image, pose)
     print(f"Cropped image of size {cropped_image.size}")
-    if cropped_image.size[0] < 1024 or cropped_image.size[1] < 1024:
-        raise Exception("Image is too small. Cropped region should be at least 512x512")
+    if cropped_image.size[0] < CROP_RESOLUTION or cropped_image.size[1] < CROP_RESOLUTION:
+        raise Exception(f"Image is too small. Cropped region should be at least {CROP_RESOLUTION}x{CROP_RESOLUTION}")
 
     sfw = is_safe_for_work(image)
     print("Is safe for work", sfw)
