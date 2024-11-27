@@ -24,7 +24,7 @@ def extract_pose(image: Image):
                              "refine_face_landmarks": True,
                          })
     if pose.body.data.mask.all():
-        raise Exception("No pose detected")
+        raise ValueError("No pose detected")
     return pose
 
 
@@ -68,12 +68,12 @@ def image_to_avatar(image: Image):
     cropped_image = crop_person(image, pose)
     print(f"Cropped image of size {cropped_image.size}")
     if cropped_image.size[0] < CROP_RESOLUTION or cropped_image.size[1] < CROP_RESOLUTION:
-        raise Exception(f"Image is too small. Cropped region should be at least {CROP_RESOLUTION}x{CROP_RESOLUTION}")
+        raise ValueError(f"Image is too small. Cropped region should be at least {CROP_RESOLUTION}x{CROP_RESOLUTION}")
 
     sfw = is_safe_for_work(image)
     print("Is safe for work", sfw)
     if not sfw:
-        raise Exception("Image is not safe for work")
+        raise ValueError("Image is not safe for work")
 
     masked_image = remove_image_background(cropped_image)
     # paste on green background
