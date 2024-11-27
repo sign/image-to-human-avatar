@@ -85,7 +85,7 @@ def image_to_avatar(image: Image):
 
 if __name__ == "__main__":
     assets_path = Path(__file__).parent.parent / "assets"
-    examples = ["stock", "amit"]
+    examples = ["flux", "stock", "amit"]
     for example in examples:
         example_dir = assets_path / "examples" / example
         img = Image.open(example_dir / "source.jpg")

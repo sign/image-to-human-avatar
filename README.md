@@ -15,6 +15,7 @@ Specifically, we aim to detect the human in the image, position it to our standa
 |:-------------------------------------------:|:-------------------------------------------:|:-------------------------------------------:|
 | ![source](assets/examples/stock/source.jpg) | ![avatar](assets/examples/stock/avatar.jpg) | ![masked](assets/examples/stock/masked.png) |
 | ![source](assets/examples/amit/source.jpg)  | ![avatar](assets/examples/amit/avatar.jpg)  | ![masked](assets/examples/amit/masked.png)  |
+| ![source](assets/examples/flux/source.jpg)  | ![avatar](assets/examples/flux/avatar.jpg)  | ![masked](assets/examples/flux/masked.png)  |
 
 ## Conditions
 
