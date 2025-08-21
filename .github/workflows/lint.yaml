@@ -3,9 +3,9 @@ name: Lint
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ main ]
   pull_request:
-    branches: [ master, main ]
+    branches: [ main ]
 
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
           python-version: '3.10'
 
       - name: Install Requirements
-        run: pip install .[dev]
+        run: pip install ".[dev,server]"
 
       - name: Lint Code
-        run: pylint human_avatar
+        run: ruff check .

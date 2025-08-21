@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 import numpy as np
@@ -28,7 +28,7 @@ def extract_pose(image: Image):
     return pose
 
 
-@lru_cache(maxsize=None)
+@cache
 def load_huggingface_model(task: str, model: str):
     return pipeline(task=task, model=model, trust_remote_code=True)
 
