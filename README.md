@@ -33,11 +33,25 @@ pip install git+https://github.com/sign/image-to-human-avatar
 
 To then process an image:
 ```python
-from human_avatar import image_to_avatar
+from human_avatar.image_to_avatar import image_to_avatar
 from PIL import Image
 
 image = Image.open("example.jpg")
 cropped, masked, pose = image_to_avatar(image)
 
 masked.save("masked.png")
+```
+
+### Web Server on Docker
+
+```bash
+docker build -t human-avatar .
+
+docker run --rm -p 9874:8080 -e PORT=8080 \
+  -v $(pwd)/output:/mnt/output \
+  human-avatar
+
+curl -X POST http://localhost:9874/ \
+  -F "output=gs://output/flux" \
+  -F "file=@assets/examples/flux/source.jpg"
 ```

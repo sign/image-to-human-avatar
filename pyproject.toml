@@ -12,7 +12,6 @@ dependencies = [
     # Pose estimation
     "pose-format",
     "mediapipe",
-    "opencv-python==4.5.5.64",
     # Transformers with vision
     "transformers",
     "torchvision",
@@ -22,19 +21,32 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "pylint"
+    "ruff"
 ]
 
-[tool.yapf]
-based_on_style = "google"
-column_limit = 120
+server = [
+    "Flask",
+    "Werkzeug",
+    "gunicorn",
+]
 
-[tool.pylint]
-max-line-length = 120
-disable = [
-    "C0114", # Missing module docstring
-    "C0115", # Missing class docstring
-    "C0116", # Missing function or method docstring
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "C90", # mccabe complexity
+    "I", # isort
+    "N", # pep8-naming
+    "UP", # pyupgrade
+    "B", # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "PT", # flake8-pytest-style
+    "W605", # invalid escape sequence
+    "BLE", # flake8-blind-except
 ]
 
 [tool.setuptools]
