@@ -15,7 +15,9 @@ dependencies = [
     # Transformers with vision
     "transformers",
     "torchvision",
-    "scikit-image"
+    "scikit-image",
+    # Required by briaai/RMBG-2.0 trust_remote_code modeling file
+    "kornia",
 ]
 
 [project.optional-dependencies]
