@@ -43,7 +43,7 @@ def image_to_avatar():
     image = Image.open(file)
     print("Image size", image.size)
 
-    include_pose = request.form.get("pose", "false").lower() in ("true", "1", "yes")
+    include_pose = request.form.get("pose", "true").lower() in ("true", "1", "yes")
     cropped, masked, pose = image_to_human_avatar(image, include_pose=include_pose)
 
     output_directory.mkdir(parents=True, exist_ok=True)

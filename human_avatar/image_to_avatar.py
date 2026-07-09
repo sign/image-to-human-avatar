@@ -29,6 +29,22 @@ def extract_shoulders(image: Image):
     return [(landmarks[point].x, landmarks[point].y) for point in SHOULDER_LANDMARKS]
 
 
+def reduce_for_detection(image: Image):
+    # BlazePose and the NSFW classifier infer at low resolution internally, so a box-reduced
+    # copy is enough; box averaging keeps landmarks within ~0.2% of full-res detection
+    factor = max(1, max(image.size) // DETECTION_RESOLUTION)
+    return image.convert("RGB").reduce(factor)
+
+
+def crop_image(image: Image, resolution: int = None):
+    """Crops the person from an image of any size, optionally resizing the crop to resolution."""
+    l_shoulder, r_shoulder = extract_shoulders(reduce_for_detection(image))
+    cropped = crop_person(image, l_shoulder, r_shoulder)
+    if resolution is not None:
+        cropped = cropped.resize((resolution, resolution))
+    return cropped
+
+
 def extract_full_pose(image: Image):
     # Full holistic pose (body, face, hands) for avatar animation
     frames = [np.array(image.convert("RGB"))]
@@ -101,13 +117,9 @@ def remove_image_background(image: Image):
     return result
 
 
-def image_to_avatar(image: Image, include_pose=False):
+def image_to_avatar(image: Image, include_pose=True):
     print(f"Processing image of size {image.size}")
-    # BlazePose and the NSFW classifier infer at low resolution internally, so a box-reduced
-    # copy feeds both; box averaging keeps landmarks within ~0.2% of full-res detection
-    factor = max(1, max(image.size) // DETECTION_RESOLUTION)
-    detection_image = image.convert("RGB").reduce(factor)
-
+    detection_image = reduce_for_detection(image)
     l_shoulder, r_shoulder = extract_shoulders(detection_image)
 
     cropped_image = crop_person(image, l_shoulder, r_shoulder)
@@ -135,7 +147,7 @@ if __name__ == "__main__":
     for example in examples:
         example_dir = assets_path / "examples" / example
         img = Image.open(example_dir / "source.jpg")
-        ci, mi, example_pose = image_to_avatar(img, include_pose=True)
+        ci, mi, example_pose = image_to_avatar(img)
         ci.save(example_dir / "avatar.jpg")
         mi.save(example_dir / "masked.png")
         with open(example_dir / "pose.pose", "wb") as f:
