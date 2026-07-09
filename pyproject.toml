@@ -1,7 +1,7 @@
 [project]
 name = "human-avatar"
 description = "Process photos of humans into animatable human avatars."
-version = "0.2.0"
+version = "0.2.1"
 authors = [
     { name = "Amit Moryossef", email = "amitmoryossef@gmail.com" },
 ]
@@ -11,7 +11,8 @@ dependencies = [
     "Pillow",
     # Pose estimation
     "pose-format",
-    "mediapipe",
+    # pose_format.utils.holistic needs the legacy solutions API, removed in mediapipe 0.10.30
+    "mediapipe<0.10.30",
     # Transformers with vision
     "transformers",
     "torchvision",
