@@ -51,9 +51,13 @@ def image_to_avatar():
     cropped.save(output_directory / "cropped.png")
     masked.save(output_directory / "masked.png")
 
+    pose_path = output_directory / "pose.pose"
     if pose is not None:
-        with (output_directory / "pose.pose").open("wb") as pose_file:
+        with pose_path.open("wb") as pose_file:
             pose.write(pose_file)
+    else:
+        # a stale pose.pose from a previous run would not match the new crops
+        pose_path.unlink(missing_ok=True)
 
     return Response(status=201)
 
