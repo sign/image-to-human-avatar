@@ -1,12 +1,15 @@
 from functools import cache
 from pathlib import Path
 
+import mediapipe as mp
 import numpy as np
 import torch
 from PIL import Image
 from pose_format import Pose
+from pose_format.numpy import NumPyPoseBody
+from pose_format.pose_header import PoseHeader, PoseHeaderComponent, PoseHeaderDimensions
 from pose_format.utils.generic import pose_normalization_info
-from pose_format.utils.holistic import load_holistic
+from pose_format.utils.holistic import BODY_LIMBS, BODY_POINTS, body_points
 from torchvision import transforms
 from transformers import AutoModelForImageSegmentation, pipeline
 
@@ -15,20 +18,29 @@ RMBG_INPUT_SIZE = (1024, 1024)
 
 
 def extract_pose(image: Image):
-    frames = [np.array(image)]
-    pose = load_holistic(frames,
-                         fps=1,
-                         width=image.width,
-                         height=image.height,
-                         depth=image.width,
-                         additional_holistic_config={
-                             "model_complexity": 2,
-                             "smooth_landmarks": False,
-                             "refine_face_landmarks": True,
-                         })
-    if pose.body.data.mask.all():
+    # BlazePose (body only, lowest complexity) since we only need shoulders for cropping
+    with mp.solutions.pose.Pose(static_image_mode=True, model_complexity=0) as pose_model:
+        results = pose_model.process(np.array(image.convert("RGB")))
+
+    if results.pose_landmarks is None:
         raise ValueError("No pose detected")
-    return pose
+
+    data, confidence = body_points(results.pose_landmarks, image.width, image.height, len(BODY_POINTS))
+    header = PoseHeader(
+        version=0.2,
+        dimensions=PoseHeaderDimensions(width=image.width, height=image.height, depth=image.width),
+        components=[
+            PoseHeaderComponent(name="POSE_LANDMARKS",
+                                points=BODY_POINTS,
+                                limbs=BODY_LIMBS,
+                                colors=[(255, 0, 0)],
+                                point_format="XYZC")
+        ],
+    )
+    body = NumPyPoseBody(fps=1,
+                         data=data[np.newaxis, np.newaxis],
+                         confidence=confidence[np.newaxis, np.newaxis])
+    return Pose(header, body)
 
 
 @cache
@@ -109,7 +121,7 @@ def image_to_avatar(image: Image):
     green_screen = Image.new("RGB", masked_image.size, "green")
     masked_image = Image.composite(masked_image, green_screen, masked_image)
 
-    return cropped_image, masked_image, extract_pose(image)
+    return cropped_image, masked_image, pose
 
 
 if __name__ == "__main__":
