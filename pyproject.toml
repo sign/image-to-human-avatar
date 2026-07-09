@@ -19,6 +19,7 @@ dependencies = [
     "scikit-image",
     # Required by briaai/RMBG-2.0 trust_remote_code modeling file
     "kornia",
+    "timm",
 ]
 
 [project.optional-dependencies]
