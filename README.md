@@ -37,7 +37,7 @@ from human_avatar.image_to_avatar import image_to_avatar
 from PIL import Image
 
 image = Image.open("example.jpg")
-cropped, masked, pose = image_to_avatar(image)
+cropped, masked, pose = image_to_avatar(image, include_pose=True)
 
 masked.save("masked.png")
 ```
@@ -55,3 +55,5 @@ curl -X POST http://localhost:9874/ \
   -F "output=gs://output/flux" \
   -F "file=@assets/examples/flux/source.jpg"
 ```
+
+Pass `-F "pose=true"` to also write a full-body `pose.pose` file (slower).

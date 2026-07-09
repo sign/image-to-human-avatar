@@ -5,19 +5,17 @@ import mediapipe as mp
 import numpy as np
 import torch
 from PIL import Image
-from pose_format import Pose
-from pose_format.numpy import NumPyPoseBody
-from pose_format.pose_header import PoseHeader, PoseHeaderComponent, PoseHeaderDimensions
-from pose_format.utils.generic import pose_normalization_info
-from pose_format.utils.holistic import BODY_LIMBS, BODY_POINTS, body_points
+from pose_format.utils.holistic import load_holistic
 from torchvision import transforms
 from transformers import AutoModelForImageSegmentation, pipeline
 
 CROP_RESOLUTION = 512
 RMBG_INPUT_SIZE = (1024, 1024)
 
+SHOULDER_LANDMARKS = (mp.solutions.pose.PoseLandmark.LEFT_SHOULDER, mp.solutions.pose.PoseLandmark.RIGHT_SHOULDER)
 
-def extract_pose(image: Image):
+
+def extract_shoulders(image: Image):
     # BlazePose (body only, lowest complexity) since we only need shoulders for cropping
     with mp.solutions.pose.Pose(static_image_mode=True, model_complexity=0) as pose_model:
         results = pose_model.process(np.array(image.convert("RGB")))
@@ -25,22 +23,27 @@ def extract_pose(image: Image):
     if results.pose_landmarks is None:
         raise ValueError("No pose detected")
 
-    data, confidence = body_points(results.pose_landmarks, image.width, image.height, len(BODY_POINTS))
-    header = PoseHeader(
-        version=0.2,
-        dimensions=PoseHeaderDimensions(width=image.width, height=image.height, depth=image.width),
-        components=[
-            PoseHeaderComponent(name="POSE_LANDMARKS",
-                                points=BODY_POINTS,
-                                limbs=BODY_LIMBS,
-                                colors=[(255, 0, 0)],
-                                point_format="XYZC")
-        ],
-    )
-    body = NumPyPoseBody(fps=1,
-                         data=data[np.newaxis, np.newaxis],
-                         confidence=confidence[np.newaxis, np.newaxis])
-    return Pose(header, body)
+    landmarks = results.pose_landmarks.landmark
+    return [(landmarks[point].x * image.width, landmarks[point].y * image.height)
+            for point in SHOULDER_LANDMARKS]
+
+
+def extract_full_pose(image: Image):
+    # Full holistic pose (body, face, hands) for avatar animation
+    frames = [np.array(image.convert("RGB"))]
+    pose = load_holistic(frames,
+                         fps=1,
+                         width=image.width,
+                         height=image.height,
+                         depth=image.width,
+                         additional_holistic_config={
+                             "model_complexity": 2,
+                             "smooth_landmarks": False,
+                             "refine_face_landmarks": True,
+                         })
+    if pose.body.data.mask.all():
+        raise ValueError("No pose detected")
+    return pose
 
 
 @cache
@@ -53,12 +56,7 @@ def is_safe_for_work(image: Image):
     return model(image)[0]["label"] == "normal"
 
 
-def crop_person(image: Image, pose: Pose):
-    normalization_info = pose_normalization_info(pose.header)
-
-    l_shoulder = pose.body.data[0, 0, normalization_info.p1]
-    r_shoulder = pose.body.data[0, 0, normalization_info.p2]
-
+def crop_person(image: Image, l_shoulder, r_shoulder):
     center_x = abs((l_shoulder[0] + r_shoulder[0]) / 2)
     center_y = abs((l_shoulder[1] + r_shoulder[1]) / 2)
     crop_size = 1.25 * abs(l_shoulder[0] - r_shoulder[0])
@@ -102,11 +100,11 @@ def remove_image_background(image: Image):
     return result
 
 
-def image_to_avatar(image: Image):
+def image_to_avatar(image: Image, include_pose=False):
     print(f"Processing image of size {image.size}")
-    pose = extract_pose(image)
+    l_shoulder, r_shoulder = extract_shoulders(image)
 
-    cropped_image = crop_person(image, pose)
+    cropped_image = crop_person(image, l_shoulder, r_shoulder)
     print(f"Cropped image of size {cropped_image.size}")
     if cropped_image.size[0] < CROP_RESOLUTION or cropped_image.size[1] < CROP_RESOLUTION:
         raise ValueError(f"Image is too small. Cropped region should be at least {CROP_RESOLUTION}x{CROP_RESOLUTION}")
@@ -121,7 +119,8 @@ def image_to_avatar(image: Image):
     green_screen = Image.new("RGB", masked_image.size, "green")
     masked_image = Image.composite(masked_image, green_screen, masked_image)
 
-    return cropped_image, masked_image, pose
+    full_pose = extract_full_pose(image) if include_pose else None
+    return cropped_image, masked_image, full_pose
 
 
 if __name__ == "__main__":
@@ -130,7 +129,7 @@ if __name__ == "__main__":
     for example in examples:
         example_dir = assets_path / "examples" / example
         img = Image.open(example_dir / "source.jpg")
-        ci, mi, example_pose = image_to_avatar(img)
+        ci, mi, example_pose = image_to_avatar(img, include_pose=True)
         ci.save(example_dir / "avatar.jpg")
         mi.save(example_dir / "masked.png")
         with open(example_dir / "pose.pose", "wb") as f:
