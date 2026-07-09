@@ -132,12 +132,14 @@ def image_to_avatar(image: Image, include_pose=True):
     if not sfw:
         raise ValueError("Image is not safe for work")
 
+    # before background removal, so a holistic detection failure costs no RMBG time
+    full_pose = extract_full_pose(image) if include_pose else None
+
     masked_image = remove_image_background(cropped_image)
     # paste on green background
     green_screen = Image.new("RGB", masked_image.size, "green")
     masked_image = Image.composite(masked_image, green_screen, masked_image)
 
-    full_pose = extract_full_pose(image) if include_pose else None
     return cropped_image, masked_image, full_pose
 
 
