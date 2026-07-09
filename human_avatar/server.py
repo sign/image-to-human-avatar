@@ -43,15 +43,21 @@ def image_to_avatar():
     image = Image.open(file)
     print("Image size", image.size)
 
-    cropped, masked, pose = image_to_human_avatar(image)
+    include_pose = request.form.get("pose", "true").lower() in ("true", "1", "yes")
+    cropped, masked, pose = image_to_human_avatar(image, include_pose=include_pose)
 
     output_directory.mkdir(parents=True, exist_ok=True)
     image.save(output_directory / "original.png")
     cropped.save(output_directory / "cropped.png")
     masked.save(output_directory / "masked.png")
 
-    with (output_directory / "pose.pose").open("wb") as pose_file:
-        pose.write(pose_file)
+    pose_path = output_directory / "pose.pose"
+    if pose is not None:
+        with pose_path.open("wb") as pose_file:
+            pose.write(pose_file)
+    else:
+        # a stale pose.pose from a previous run would not match the new crops
+        pose_path.unlink(missing_ok=True)
 
     return Response(status=201)
 

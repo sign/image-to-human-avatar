@@ -42,6 +42,17 @@ cropped, masked, pose = image_to_avatar(image)
 masked.save("masked.png")
 ```
 
+Pass `include_pose=False` to skip the full-body pose extraction (much faster).
+
+To only crop a person out of an image of any size, without the avatar quality conditions:
+```python
+from human_avatar.image_to_avatar import crop_image
+from PIL import Image
+
+image = Image.open("example.jpg")
+crop = crop_image(image, resolution=256)  # 256x256 shoulder-centered crop
+```
+
 ### Web Server on Docker
 
 ```bash
@@ -55,3 +66,5 @@ curl -X POST http://localhost:9874/ \
   -F "output=gs://output/flux" \
   -F "file=@assets/examples/flux/source.jpg"
 ```
+
+Pass `-F "pose=false"` to skip writing the full-body `pose.pose` file (much faster).
