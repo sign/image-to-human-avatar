@@ -3,11 +3,11 @@ from pathlib import Path
 
 import mediapipe as mp
 import numpy as np
-import torch
 from PIL import Image
-from pose_format.utils.holistic import load_holistic
-from torchvision import transforms
-from transformers import AutoModelForImageSegmentation, pipeline
+
+# torch, torchvision, transformers and pose_format are imported lazily inside the functions that use
+# them (avatar masking + full-pose extraction), so `crop_image` can be imported with only mediapipe,
+# numpy and Pillow installed — e.g. via `pip install --no-deps` for a crop-only deployment.
 
 CROP_RESOLUTION = 512
 RMBG_INPUT_SIZE = (1024, 1024)
@@ -47,6 +47,8 @@ def crop_image(image: Image, resolution: int = None):
 
 def extract_full_pose(image: Image):
     # Full holistic pose (body, face, hands) for avatar animation
+    from pose_format.utils.holistic import load_holistic
+
     frames = [np.array(image.convert("RGB"))]
     pose = load_holistic(frames,
                          fps=1,
@@ -65,6 +67,8 @@ def extract_full_pose(image: Image):
 
 @cache
 def load_huggingface_model(task: str, model: str):
+    from transformers import pipeline
+
     return pipeline(task=task, model=model, trust_remote_code=True)
 
 
@@ -88,6 +92,9 @@ def crop_person(image: Image, l_shoulder, r_shoulder):
 
 @cache
 def load_rmbg_model():
+    import torch
+    from transformers import AutoModelForImageSegmentation
+
     model = AutoModelForImageSegmentation.from_pretrained("briaai/RMBG-2.0", trust_remote_code=True)
     torch.set_float32_matmul_precision("high")
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -97,6 +104,9 @@ def load_rmbg_model():
 
 
 def remove_image_background(image: Image):
+    import torch
+    from torchvision import transforms
+
     model, device = load_rmbg_model()
 
     transform_image = transforms.Compose([
