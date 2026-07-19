@@ -4,7 +4,7 @@ name: Publish to PyPI
 on:
   release:
     types: [ published ]
-  # allow validating the build without cutting a release
+  # manual runs build only (validation); publishing happens on release
   workflow_dispatch:
 
 jobs:
@@ -13,18 +13,22 @@ jobs:
     # dedicated environment scopes the PyPI trusted publisher; must match the PyPI config
     environment: pypi
     permissions:
+      # actions/checkout needs contents:read once a permissions map is set
+      contents: read
       # required for OIDC trusted publishing (no API token needed)
       id-token: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v8
 
       - name: Build distributions
         run: uv build
 
       - name: Publish to PyPI
+        # only publish on a real release; workflow_dispatch runs build-only for validation
+        if: github.event_name == 'release'
         run: uv publish --trusted-publishing always
