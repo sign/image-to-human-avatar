@@ -28,10 +28,14 @@ Specifically, we aim to detect the human in the image, position it to our standa
 ## Usage
 
 ```bash
-pip install git+https://github.com/sign/image-to-human-avatar
+# cropping only (crop_image) — lightweight, no torch
+pip install image-to-human-avatar
+
+# full avatar pipeline (image_to_avatar): add the [mask] extra for background masking + pose
+pip install "image-to-human-avatar[mask]"
 ```
 
-To then process an image:
+To then process an image (requires the `[mask]` extra):
 ```python
 from human_avatar.image_to_avatar import image_to_avatar
 from PIL import Image
