@@ -1,0 +1,34 @@
+name: Publish to PyPI
+
+# publishes the package to PyPI when a GitHub release is published.
+on:
+  release:
+    types: [ published ]
+  # manual runs build only (validation); publishing happens on release
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # dedicated environment scopes the PyPI trusted publisher; must match the PyPI config
+    environment: pypi
+    permissions:
+      # actions/checkout needs contents:read once a permissions map is set
+      contents: read
+      # required for OIDC trusted publishing (no API token needed)
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.3.2
+
+      - name: Build distributions
+        run: uv build
+
+      - name: Publish to PyPI
+        # only publish on a real release; workflow_dispatch runs build-only for validation
+        if: github.event_name == 'release'
+        run: uv publish --trusted-publishing always
