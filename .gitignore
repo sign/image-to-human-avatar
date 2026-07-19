@@ -1,3 +1,3 @@
 .idea/
 build/
-human_avatar.egg-info/
+*.egg-info/
