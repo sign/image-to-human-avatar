@@ -1,5 +1,6 @@
 [build-system]
-# setuptools>=77 is required for the PEP 639 SPDX `license` expression below
+# setuptools>=77 for the PEP 639 SPDX `license` expression; it also auto-detects and
+# bundles LICENSE, so no explicit `license-files` entry is needed
 requires = ["setuptools>=77.0"]
 build-backend = "setuptools.build_meta"
 
@@ -12,7 +13,6 @@ authors = [
 ]
 readme = "README.md"
 license = "CC-BY-NC-4.0"
-license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [
     # Work with images
